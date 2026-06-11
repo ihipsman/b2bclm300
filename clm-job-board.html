@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLM Job Board — B2B CLM 300+</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f3;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #fff;
+      border-bottom: 1px solid #e5e5e5;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header .logo {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1a1a1a;
+      letter-spacing: -0.01em;
+    }
+
+    header .logo span {
+      color: #6b7280;
+      font-weight: 400;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Gate */
+    #gate {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+    }
+
+    .gate-card {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .gate-icon {
+      width: 52px;
+      height: 52px;
+      background: #f5f5f3;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+      font-size: 24px;
+    }
+
+    .gate-card h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .gate-card p {
+      font-size: 14px;
+      color: #6b7280;
+      line-height: 1.6;
+      margin-bottom: 1.75rem;
+    }
+
+    .gate-card p strong {
+      color: #1a1a1a;
+      font-weight: 500;
+    }
+
+    input[type="email"] {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      outline: none;
+      margin-bottom: 0.625rem;
+      color: #1a1a1a;
+      transition: border-color 0.15s;
+    }
+
+    input[type="email"]:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 500;
+      background: #1a1a1a;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-primary:hover { background: #333; }
+    .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
+
+    .status-msg {
+      font-size: 13px;
+      margin-top: 0.625rem;
+      min-height: 18px;
+      color: #6b7280;
+    }
+
+    .status-msg.error { color: #dc2626; }
+    .status-msg.success { color: #16a34a; }
+
+    .subscribe-link {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 1.25rem;
+    }
+
+    .subscribe-link a {
+      color: #6366f1;
+      text-decoration: none;
+    }
+
+    .subscribe-link a:hover { text-decoration: underline; }
+
+    /* Board */
+    #board {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      padding: 1.5rem 2rem;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .board-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .board-header h2 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .board-header .verified {
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+    .btn-secondary {
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      background: #fff;
+      color: #1a1a1a;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-secondary:hover { background: #f5f5f3; }
+
+    .airtable-embed {
+      border: 1px solid #e5e5e5;
+      border-radius: 10px;
+      flex: 1;
+      min-height: 640px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.25rem;
+      font-size: 12px;
+      color: #9ca3af;
+      border-top: 1px solid #e5e5e5;
+      background: #fff;
+    }
+
+    footer a { color: #6b7280; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">B2B CLM 300+ <span>· Job Board</span></div>
+    <div id="header-actions"></div>
+  </header>
+
+  <main>
+
+    <div id="gate">
+      <div class="gate-card">
+        <div class="gate-icon">💼</div>
+        <h1>CLM job board</h1>
+        <p>This job board is exclusive to <strong>B2B CLM 300+</strong> subscribers. Enter the email you used to sign up.</p>
+        <input type="email" id="email-input" placeholder="your@email.com" />
+        <button class="btn-primary" onclick="verify()">Verify access</button>
+        <p class="status-msg" id="status-msg"></p>
+        <p class="subscribe-link">Not subscribed? <a href="https://www.beehiiv.com/subscribe/pub_f6e01f09-97f3-4cc3-961a-2e598218fe77" target="_blank">Join B2B CLM 300+ →</a></p>
+      </div>
+    </div>
+
+    <div id="board">
+      <div class="board-header">
+        <div>
+          <h2>CLM job board</h2>
+          <div class="verified" id="verified-msg"></div>
+        </div>
+        <button class="btn-secondary" onclick="logout()">Sign out</button>
+      </div>
+      <iframe
+        class="airtable-embed"
+        src="https://airtable.com/embed/appoEQgLvNZZL0QDe/shrTFjSAZ7hgy8P70?viewControls=on"
+        frameborder="0"
+        onmousewheel=""
+        width="100%"
+        height="640">
+      </iframe>
+    </div>
+
+  </main>
+
+  <footer>
+    <a href="https://www.beehiiv.com/subscribe/pub_f6e01f09-97f3-4cc3-961a-2e598218fe77" target="_blank">B2B CLM 300+</a> · Powered by Repetitos
+  </footer>
+
+  <script>
+    const SUBSCRIBERS = new Set([
+      "ihipsman@gmail.com","ihipsman@repetitos.com","elana@appcues.com","diana@advocacymaven.com",
+      "darice.terlizzi@gmail.com","mcfranks@gmail.com","sandra.grauschopf@gmail.com",
+      "jenineclancy@gmail.com","ang_walter@hotmail.com","dawsonbrittnee@gmail.com",
+      "heather@heatherfoehconsulting.com","ryangutierrez@gmail.com","lmb.butler@gmail.com",
+      "reema.sarahthomas@gmail.com","clio.castruccio@boomi.com","kmcgill@mural.co",
+      "shetal.shah@getmaintainx.com","steve@twelfth.agency","scott@sendsight.ai",
+      "ddemasters@gmail.com","charity.lorenzen@gmail.com","nina.wibowo@gmail.com",
+      "rachelshaney@gmail.com","victoria.taylor@energyexemplar.com","shelly.ryder@protonmail.com",
+      "tinanguyen039@hotmail.com","warsan.ahmed@gmail.com","kzartarian@sierrainteractive.com",
+      "jean.k.collings@gmail.com","kbrenneman2@yahoo.com","mollyjones@deltek.com",
+      "cvanmeir@onesourcevirtual.com","carewarren4@gmail.com","misnys04@gmail.com",
+      "jennifer.brister@sinch.com","apersiani@csod.com","amy_wigginton@trimble.com",
+      "val@valgeisler.com","sukhsran@gmail.com","rachael.taft@granicus.com",
+      "michelle.ouellette@getbridge.com","elisabeth@slapfive.com","tim@slapfive.com",
+      "jeff@slapfive.com","anmay0706@gmail.com","jon.leighton@nexthink.com",
+      "shyam@buyerassist.io","sdonnelly@workramp.com","melissa.alonso@anaplan.com",
+      "emilygoh1904@gmail.com"
+    ]);
+
+    function verify() {
+      const email = document.getElementById('email-input').value.trim().toLowerCase();
+      const msg = document.getElementById('status-msg');
+
+      if (!email || !email.includes('@')) {
+        msg.className = 'status-msg error';
+        msg.textContent = 'Please enter a valid email address.';
+        return;
+      }
+
+      if (SUBSCRIBERS.has(email)) {
+        document.getElementById('gate').style.display = 'none';
+        const board = document.getElementById('board');
+        board.style.display = 'flex';
+        document.getElementById('verified-msg').textContent = 'Verified: ' + email;
+      } else {
+        msg.className = 'status-msg error';
+        msg.textContent = 'No active subscription found for that email.';
+      }
+    }
+
+    function logout() {
+      document.getElementById('board').style.display = 'none';
+      document.getElementById('gate').style.display = 'flex';
+      document.getElementById('email-input').value = '';
+      const msg = document.getElementById('status-msg');
+      msg.className = 'status-msg';
+      msg.textContent = '';
+    }
+
+    document.getElementById('email-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') verify();
+    });
+  </script>
+
+</body>
+</html>

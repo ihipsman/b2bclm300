@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>B2B CLM — Member Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0f0f;
+      --surface: #111818;
+      --border: #1e2e2e;
+      --teal: #7EC8C8;
+      --teal-dim: #4a9999;
+      --ember: #e07040;
+      --text: #e8f0f0;
+      --muted: #7a9898;
+      --input-bg: #0d1a1a;
+      --input-border: #1e3030;
+      --input-focus: #7EC8C8;
+      --error: #e05555;
+      --success: #4caf80;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-family: 'DM Mono', monospace;
+      font-size: 18px;
+      color: var(--teal);
+      letter-spacing: 0.04em;
+      text-decoration: none;
+    }
+
+    .logo span {
+      color: var(--muted);
+      font-size: 13px;
+      margin-left: 12px;
+      font-weight: 400;
+    }
+
+    /* ── Layout ── */
+    main {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* ── Auth screen ── */
+    #auth-screen, #profile-screen, #pending-screen, #success-screen {
+      display: none;
+    }
+    #auth-screen.active, #profile-screen.active, #pending-screen.active, #success-screen.active {
+      display: block;
+    }
+
+    /* ── Section headers ── */
+    .page-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 32px;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    .page-subtitle {
+      color: var(--muted);
+      font-size: 15px;
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    .page-subtitle strong {
+      color: var(--teal);
+      font-weight: 500;
+    }
+
+    /* ── Form ── */
+    .form-section {
+      margin-bottom: 36px;
+    }
+
+    .form-section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--teal-dim);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 6px;
+      letter-spacing: 0.02em;
+    }
+
+    label .required {
+      color: var(--ember);
+      margin-left: 2px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    select {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      padding: 11px 14px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      appearance: none;
+      -webkit-appearance: none;
+      outline: none;
+    }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a9898' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+
+    select option {
+      background: #111818;
+      color: var(--text);
+    }
+
+    input:focus, select:focus {
+      border-color: var(--input-focus);
+      box-shadow: 0 0 0 3px rgba(126, 200, 200, 0.1);
+    }
+
+    input::placeholder { color: #3a5555; }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--teal);
+      color: #0a0f0f;
+      width: 100%;
+      margin-top: 8px;
+      font-size: 14px;
+      padding: 14px;
+    }
+
+    .btn-primary:hover { background: #9ed8d8; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      font-size: 13px;
+      padding: 10px 18px;
+    }
+    .btn-ghost:hover { border-color: var(--teal-dim); color: var(--teal); }
+
+    /* ── Notice / status ── */
+    .notice {
+      border-radius: 6px;
+      padding: 14px 16px;
+      font-size: 14px;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .notice-info {
+      background: rgba(126, 200, 200, 0.08);
+      border: 1px solid rgba(126, 200, 200, 0.2);
+      color: var(--teal);
+    }
+
+    .notice-error {
+      background: rgba(224, 85, 85, 0.08);
+      border: 1px solid rgba(224, 85, 85, 0.2);
+      color: var(--error);
+    }
+
+    .notice-success {
+      background: rgba(76, 175, 128, 0.08);
+      border: 1px solid rgba(76, 175, 128, 0.2);
+      color: var(--success);
+    }
+
+    /* ── Pending / success states ── */
+    .state-icon {
+      font-size: 48px;
+      margin-bottom: 24px;
+    }
+
+    .state-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+
+    .state-body {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+      max-width: 480px;
+    }
+
+    .state-body strong { color: var(--text); }
+
+    /* ── Auth divider ── */
+    .auth-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 32px;
+      margin-top: 8px;
+    }
+
+    .magic-sent {
+      text-align: center;
+      padding: 24px 0;
+    }
+
+    .magic-sent .icon { font-size: 40px; margin-bottom: 16px; }
+    .magic-sent p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+    .magic-sent strong { color: var(--text); }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(10,15,15,0.3);
+      border-top-color: #0a0f0f;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Responsive ── */
+    @media (max-width: 520px) {
+      .field-row { grid-template-columns: 1fr; }
+      main { padding: 32px 16px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="#">B2B CLM<span>Member Directory</span></a>
+</header>
+
+<main>
+
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen">
+    <h1 class="page-title">Join the directory</h1>
+    <p class="page-subtitle">Enter your email to get a magic link. No password needed.<br>
+    Already a <strong>B2B CLM 300+</strong> subscriber? Use the same email.</p>
+
+    <div class="auth-card">
+      <div id="magic-form-wrap">
+        <div class="field">
+          <label for="auth-email">Email address <span class="required">*</span></label>
+          <input type="email" id="auth-email" placeholder="you@company.com" autocomplete="email" />
+        </div>
+        <div id="auth-error" class="notice notice-error" style="display:none"></div>
+        <button class="btn btn-primary" id="magic-btn" onclick="sendMagicLink()">
+          Send magic link
+        </button>
+      </div>
+      <div id="magic-sent-wrap" class="magic-sent" style="display:none">
+        <div class="icon">📬</div>
+        <p>Magic link sent to <strong id="sent-email"></strong>.<br>
+        Check your inbox and click the link to continue.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE SCREEN -->
+  <div id="profile-screen">
+    <h1 class="page-title">Your profile</h1>
+    <p class="page-subtitle">This is how you'll appear in the B2B CLM member directory.<br>
+    All fields are visible to other approved members.</p>
+
+    <div id="profile-error" class="notice notice-error" style="display:none"></div>
+    <div id="profile-success" class="notice notice-success" style="display:none"></div>
+
+    <!-- About you -->
+    <div class="form-section">
+      <div class="form-section-label">About you</div>
+
+      <div class="field">
+        <label for="full_name">Full name <span class="required">*</span></label>
+        <input type="text" id="full_name" placeholder="Jane Smith" />
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="company">Company <span class="required">*</span></label>
+          <input type="text" id="company" placeholder="Acme Corp" />
+        </div>
+        <div class="field">
+          <label for="title">Job title <span class="required">*</span></label>
+          <input type="text" id="title" placeholder="Director of Customer Marketing" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="role_level">Seniority level <span class="required">*</span></label>
+        <select id="role_level">
+          <option value="" disabled selected>Select level</option>
+          <option>Specialist / Associate</option>
+          <option>Manager / Sr Manager</option>
+          <option>Director / Sr Director</option>
+          <option>VP+</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- CLM practice -->
+    <div class="form-section">
+      <div class="form-section-label">Your CLM practice</div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="clm_time_pct">Time spent on CLM <span class="required">*</span></label>
+          <select id="clm_time_pct">
+            <option value="" disabled selected>Select range</option>
+            <option>&lt;33%</option>
+            <option>33–66%</option>
+            <option>66–100%</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="clm_tenure">Years as a CLM practitioner <span class="required">*</span></label>
+          <select id="clm_tenure">
+            <option value="" disabled selected>Select range</option>
+            <option>&lt;1 year</option>
+            <option>1–2 years</option>
+            <option>3–4 years</option>
+            <option>&gt;5 years</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Location -->
+    <div class="form-section">
+      <div class="form-section-label">Location</div>
+
+      <div class="field">
+        <label for="country">Country <span class="required">*</span></label>
+        <select id="country" onchange="toggleState()">
+          <option value="" disabled selected>Select country</option>
+          <option>United States</option>
+          <option>Canada</option>
+          <option>United Kingdom</option>
+          <option>Australia</option>
+          <option>India</option>
+          <option>France</option>
+          <option>Germany</option>
+          <option>Other Europe</option>
+          <option>Africa</option>
+          <option>Middle East</option>
+          <option>Other APAC</option>
+          <option>Mexico</option>
+          <option>South America</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div class="field" id="state-field" style="display:none">
+        <label for="state">State <span class="required">*</span></label>
+        <select id="state">
+          <option value="" disabled selected>Select state</option>
+          <option>AL</option><option>AK</option><option>AZ</option><option>AR</option>
+          <option>CA</option><option>CO</option><option>CT</option><option>DC</option>
+          <option>DE</option><option>FL</option><option>GA</option><option>HI</option>
+          <option>ID</option><option>IL</option><option>IN</option><option>IA</option>
+          <option>KS</option><option>KY</option><option>LA</option><option>ME</option>
+          <option>MD</option><option>MA</option><option>MI</option><option>MN</option>
+          <option>MS</option><option>MO</option><option>MT</option><option>NE</option>
+          <option>NV</option><option>NH</option><option>NJ</option><option>NM</option>
+          <option>NY</option><option>NC</option><option>ND</option><option>OH</option>
+          <option>OK</option><option>OR</option><option>PA</option><option>RI</option>
+          <option>SC</option><option>SD</option><option>TN</option><option>TX</option>
+          <option>UT</option><option>VT</option><option>VA</option><option>WA</option>
+          <option>WV</option><option>WI</option><option>WY</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="save-btn" onclick="saveProfile()">
+      Save profile
+    </button>
+  </div>
+
+  <!-- PENDING SCREEN -->
+  <div id="pending-screen">
+    <div class="state-icon">⏳</div>
+    <h2 class="state-title">Profile submitted</h2>
+    <p class="state-body">
+      Your profile is pending review. Once approved, you'll appear in the
+      <strong>B2B CLM member directory</strong> and can browse other members.<br><br>
+      You'll hear back within 1–2 business days.
+    </p>
+  </div>
+
+  <!-- SUCCESS SCREEN (approved members who've already submitted) -->
+  <div id="success-screen">
+    <div class="state-icon">✅</div>
+    <h2 class="state-title">You're in</h2>
+    <p class="state-body">
+      Your profile is live in the B2B CLM member directory.<br><br>
+      <a href="member-directory.html" style="color: var(--teal)">Browse the directory →</a>
+    </p>
+  </div>
+
+</main>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+  const SUPABASE_URL = 'https://pppaquaglynypemyvafz.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_UrBBypj7-Hw_tjgeLoLrzw_Yo6gECV0';
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ── Show/hide screens ──
+  function show(id) {
+    ['auth-screen','profile-screen','pending-screen','success-screen'].forEach(s => {
+      document.getElementById(s).classList.remove('active');
+    });
+    document.getElementById(id).classList.add('active');
+  }
+
+  // ── State toggle ──
+  window.toggleState = function() {
+    const country = document.getElementById('country').value;
+    document.getElementById('state-field').style.display =
+      country === 'United States' ? 'block' : 'none';
+    if (country !== 'United States') document.getElementById('state').value = '';
+  };
+
+  // ── Magic link ──
+  window.sendMagicLink = async function() {
+    const email = document.getElementById('auth-email').value.trim();
+    const errEl = document.getElementById('auth-error');
+    errEl.style.display = 'none';
+
+    if (!email || !email.includes('@')) {
+      errEl.textContent = 'Please enter a valid email address.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const btn = document.getElementById('magic-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Sending…';
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href }
+    });
+
+    if (error) {
+      errEl.textContent = error.message;
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Send magic link';
+      return;
+    }
+
+    document.getElementById('sent-email').textContent = email;
+    document.getElementById('magic-form-wrap').style.display = 'none';
+    document.getElementById('magic-sent-wrap').style.display = 'block';
+  };
+
+  // ── Save profile ──
+  window.saveProfile = async function() {
+    const errEl = document.getElementById('profile-error');
+    const succEl = document.getElementById('profile-success');
+    errEl.style.display = 'none';
+    succEl.style.display = 'none';
+
+    const fields = {
+      full_name: document.getElementById('full_name').value.trim(),
+      company: document.getElementById('company').value.trim(),
+      title: document.getElementById('title').value.trim(),
+      role_level: document.getElementById('role_level').value,
+      clm_time_pct: document.getElementById('clm_time_pct').value,
+      clm_tenure: document.getElementById('clm_tenure').value,
+      country: document.getElementById('country').value,
+      state: document.getElementById('state').value || null,
+    };
+
+    const required = ['full_name','company','title','role_level','clm_time_pct','clm_tenure','country'];
+    const missing = required.filter(k => !fields[k]);
+    if (missing.length) {
+      errEl.textContent = 'Please complete all required fields.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    if (fields.country === 'United States' && !fields.state) {
+      errEl.textContent = 'Please select your state.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const btn = document.getElementById('save-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Saving…';
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const { error } = await supabase.from('members').upsert({
+      id: user.id,
+      ...fields,
+      approved: false,
+    });
+
+    if (error) {
+      errEl.textContent = error.message;
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Save profile';
+      return;
+    }
+
+    show('pending-screen');
+  };
+
+  // ── Init: check session ──
+  async function init() {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      show('auth-screen');
+      return;
+    }
+
+    // Check if profile exists
+    const { data: profile } = await supabase
+      .from('members')
+      .select('approved, full_name, company, title, role_level, clm_time_pct, clm_tenure, country, state')
+      .eq('id', session.user.id)
+      .single();
+
+    if (!profile) {
+      show('profile-screen');
+      return;
+    }
+
+    if (profile.approved) {
+      show('success-screen');
+      return;
+    }
+
+    // Has profile but not yet approved — check if they want to edit
+    // Pre-fill form with existing data
+    document.getElementById('full_name').value = profile.full_name || '';
+    document.getElementById('company').value = profile.company || '';
+    document.getElementById('title').value = profile.title || '';
+    document.getElementById('role_level').value = profile.role_level || '';
+    document.getElementById('clm_time_pct').value = profile.clm_time_pct || '';
+    document.getElementById('clm_tenure').value = profile.clm_tenure || '';
+    document.getElementById('country').value = profile.country || '';
+    if (profile.country === 'United States') {
+      document.getElementById('state-field').style.display = 'block';
+      document.getElementById('state').value = profile.state || '';
+    }
+
+    show('pending-screen');
+  }
+
+  // Handle auth state changes (e.g. magic link callback)
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN') init();
+  });
+
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>B2B CLM — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0f0f;
+      --surface: #111818;
+      --surface2: #0d1a1a;
+      --border: #1e2e2e;
+      --teal: #7EC8C8;
+      --teal-dim: #4a9999;
+      --ember: #e07040;
+      --text: #e8f0f0;
+      --muted: #7a9898;
+      --error: #e05555;
+      --success: #4caf80;
+      --warning: #e0a040;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-family: 'DM Mono', monospace;
+      font-size: 17px;
+      color: var(--teal);
+      letter-spacing: 0.04em;
+    }
+
+    .logo span {
+      color: var(--ember);
+      font-size: 11px;
+      margin-left: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      vertical-align: middle;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .admin-email {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ── Layout ── */
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* ── Screens ── */
+    #login-screen, #admin-screen {
+      display: none;
+    }
+    #login-screen.active, #admin-screen.active {
+      display: block;
+    }
+
+    /* ── Login ── */
+    .login-card {
+      max-width: 400px;
+      margin: 80px auto 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 32px;
+    }
+
+    .login-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+
+    .login-sub {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .page-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 28px;
+      color: var(--text);
+    }
+
+    .page-title span {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--muted);
+      margin-left: 12px;
+      font-weight: 400;
+    }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 10px 18px;
+      cursor: pointer;
+      color: var(--muted);
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+      transition: all 0.15s;
+    }
+
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+
+    .tab-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      font-size: 10px;
+      font-weight: 600;
+      margin-left: 6px;
+      background: var(--ember);
+      color: #0a0f0f;
+    }
+
+    /* ── Member cards ── */
+    .members-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .member-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 24px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      transition: border-color 0.15s;
+    }
+
+    .member-card:hover { border-color: var(--teal-dim); }
+
+    .member-card.approved { border-left: 3px solid var(--success); }
+    .member-card.pending { border-left: 3px solid var(--warning); }
+
+    .member-name {
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .member-role {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .member-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      letter-spacing: 0.03em;
+    }
+
+    .tag.teal { border-color: rgba(126,200,200,0.3); color: var(--teal); }
+    .tag.ember { border-color: rgba(224,112,64,0.3); color: var(--ember); }
+
+    .member-meta {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: #3a5555;
+      margin-top: 8px;
+    }
+
+    /* ── Card actions ── */
+    .card-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .status-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+
+    .status-badge.pending {
+      background: rgba(224,160,64,0.12);
+      color: var(--warning);
+      border: 1px solid rgba(224,160,64,0.3);
+    }
+
+    .status-badge.approved {
+      background: rgba(76,175,128,0.12);
+      color: var(--success);
+      border: 1px solid rgba(76,175,128,0.3);
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+
+    .btn-approve {
+      background: var(--success);
+      color: #0a0f0f;
+    }
+    .btn-approve:hover { background: #5dc990; }
+
+    .btn-revoke {
+      background: transparent;
+      color: var(--error);
+      border: 1px solid rgba(224,85,85,0.3);
+    }
+    .btn-revoke:hover { background: rgba(224,85,85,0.08); }
+
+    .btn-primary {
+      background: var(--teal);
+      color: #0a0f0f;
+      width: 100%;
+      padding: 12px;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    .btn-primary:hover { background: #9ed8d8; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 7px 14px;
+      font-size: 12px;
+    }
+    .btn-ghost:hover { border-color: var(--teal-dim); color: var(--teal); }
+
+    /* ── Form ── */
+    .field { margin-bottom: 18px; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      background: #0d1a1a;
+      border: 1px solid #1e3030;
+      border-radius: 6px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      padding: 11px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus { border-color: var(--teal); }
+    input::placeholder { color: #3a5555; }
+
+    /* ── Notices ── */
+    .notice {
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+
+    .notice-error {
+      background: rgba(224,85,85,0.08);
+      border: 1px solid rgba(224,85,85,0.2);
+      color: var(--error);
+    }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+
+    .empty-icon { font-size: 36px; margin-bottom: 12px; }
+    .empty p { font-size: 14px; }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(10,15,15,0.3);
+      border-top-color: #0a0f0f;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 18px;
+      font-size: 14px;
+      font-family: 'DM Mono', monospace;
+      color: var(--text);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.25s;
+      z-index: 100;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+
+    @media (max-width: 600px) {
+      .member-card { grid-template-columns: 1fr; }
+      .card-actions { flex-direction: row; align-items: center; }
+      main { padding: 24px 16px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">B2B CLM <span>Admin</span></div>
+  <div class="header-right">
+    <span class="admin-email" id="admin-email-display"></span>
+    <button class="btn btn-ghost" id="signout-btn" style="display:none" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- LOGIN -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="login-title">Admin login</div>
+      <p class="login-sub">B2B CLM member approval panel</p>
+      <div id="login-error" class="notice notice-error" style="display:none"></div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="you@company.com" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" />
+      </div>
+      <button class="btn btn-primary" id="login-btn" onclick="adminLogin()">Sign in</button>
+    </div>
+  </div>
+
+  <!-- ADMIN PANEL -->
+  <div id="admin-screen">
+    <div class="page-header">
+      <div class="page-title">
+        Members
+        <span id="total-count"></span>
+      </div>
+      <button class="btn btn-ghost" onclick="loadMembers()">↻ Refresh</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" id="tab-pending" onclick="switchTab('pending')">
+        Pending <span class="tab-badge" id="pending-badge" style="display:none">0</span>
+      </button>
+      <button class="tab" id="tab-approved" onclick="switchTab('approved')">Approved</button>
+    </div>
+
+    <div class="members-grid" id="members-list"></div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+  const SUPABASE_URL = 'https://pppaquaglynypemyvafz.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_UrBBypj7-Hw_tjgeLoLrzw_Yo6gECV0';
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let allMembers = [];
+  let currentTab = 'pending';
+
+  // ── Show screen ──
+  function show(id) {
+    ['login-screen','admin-screen'].forEach(s =>
+      document.getElementById(s).classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  // ── Toast ──
+  function toast(msg, duration = 3000) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), duration);
+  }
+
+  // ── Login ──
+  window.adminLogin = async function() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errEl = document.getElementById('login-error');
+    const btn = document.getElementById('login-btn');
+
+    errEl.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Signing in…';
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      errEl.textContent = error.message;
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Sign in';
+      return;
+    }
+  };
+
+  // ── Sign out ──
+  window.signOut = async function() {
+    await supabase.auth.signOut();
+    show('login-screen');
+    document.getElementById('signout-btn').style.display = 'none';
+    document.getElementById('admin-email-display').textContent = '';
+  };
+
+  // ── Tab switch ──
+  window.switchTab = function(tab) {
+    currentTab = tab;
+    document.getElementById('tab-pending').classList.toggle('active', tab === 'pending');
+    document.getElementById('tab-approved').classList.toggle('active', tab === 'approved');
+    renderMembers();
+  };
+
+  // ── Load members ──
+  window.loadMembers = async function() {
+    const list = document.getElementById('members-list');
+    list.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><p>Loading…</p></div>';
+
+    const { data, error } = await supabase
+      .from('members')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      list.innerHTML = `<div class="notice notice-error">${error.message}</div>`;
+      return;
+    }
+
+    allMembers = data || [];
+
+    const pending = allMembers.filter(m => !m.approved);
+    const badge = document.getElementById('pending-badge');
+    if (pending.length > 0) {
+      badge.textContent = pending.length;
+      badge.style.display = 'inline-flex';
+    } else {
+      badge.style.display = 'none';
+    }
+
+    document.getElementById('total-count').textContent = `${allMembers.length} total`;
+
+    renderMembers();
+  };
+
+  // ── Render ──
+  function renderMembers() {
+    const list = document.getElementById('members-list');
+    const filtered = allMembers.filter(m =>
+      currentTab === 'pending' ? !m.approved : m.approved
+    );
+
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="empty">
+        <div class="empty-icon">${currentTab === 'pending' ? '✅' : '👤'}</div>
+        <p>${currentTab === 'pending' ? 'No pending profiles.' : 'No approved members yet.'}</p>
+      </div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(m => `
+      <div class="member-card ${m.approved ? 'approved' : 'pending'}" id="card-${m.id}">
+        <div>
+          <div class="member-name">${esc(m.full_name || '—')}</div>
+          <div class="member-role">${esc(m.title || '')}${m.company ? ' · ' + esc(m.company) : ''}</div>
+          <div class="member-tags">
+            ${m.role_level ? `<span class="tag teal">${esc(m.role_level)}</span>` : ''}
+            ${m.clm_time_pct ? `<span class="tag">${esc(m.clm_time_pct)} CLM</span>` : ''}
+            ${m.clm_tenure ? `<span class="tag">${esc(m.clm_tenure)}</span>` : ''}
+            ${m.country ? `<span class="tag ember">${esc(m.country)}${m.state ? ', ' + esc(m.state) : ''}</span>` : ''}
+          </div>
+          <div class="member-meta">Submitted ${formatDate(m.created_at)}</div>
+        </div>
+        <div class="card-actions">
+          <span class="status-badge ${m.approved ? 'approved' : 'pending'}">${m.approved ? 'Approved' : 'Pending'}</span>
+          ${!m.approved
+            ? `<button class="btn btn-approve" onclick="setApproval('${m.id}', true)">Approve</button>`
+            : `<button class="btn btn-revoke" onclick="setApproval('${m.id}', false)">Revoke</button>`
+          }
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ── Approve / revoke ──
+  window.setApproval = async function(id, approved) {
+    const { error } = await supabase
+      .from('members')
+      .update({ approved })
+      .eq('id', id);
+
+    if (error) {
+      toast('Error: ' + error.message);
+      return;
+    }
+
+    // Update local state
+    const member = allMembers.find(m => m.id === id);
+    if (member) member.approved = approved;
+
+    const pending = allMembers.filter(m => !m.approved);
+    const badge = document.getElementById('pending-badge');
+    badge.textContent = pending.length;
+    badge.style.display = pending.length > 0 ? 'inline-flex' : 'none';
+
+    toast(approved ? '✓ Profile approved' : '✓ Approval revoked');
+    renderMembers();
+  };
+
+  // ── Helpers ──
+  function esc(str) {
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  // ── Init ──
+  async function init() {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      show('login-screen');
+      return;
+    }
+
+    document.getElementById('admin-email-display').textContent = session.user.email;
+    document.getElementById('signout-btn').style.display = 'inline-flex';
+    show('admin-screen');
+    loadMembers();
+  }
+
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN') {
+      document.getElementById('admin-email-display').textContent = session.user.email;
+      document.getElementById('signout-btn').style.display = 'inline-flex';
+      show('admin-screen');
+      loadMembers();
+    }
+  });
+
+  init();
+</script>
+</body>
+</html>

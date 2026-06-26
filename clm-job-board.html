@@ -294,10 +294,18 @@
       }
     }
 
+    const LOGGER_URL = 'https://script.google.com/macros/s/AKfycbys05WSUu6sGSYT5mjSZPq88oXzXfWnUk20WfNmwCqktrbRrL_p_vlmBVMMuvLUVn6f/exec';
+
+    function logVisit(email) {
+      var img = new Image();
+      img.src = LOGGER_URL + '?email=' + encodeURIComponent(email);
+    }
+
     function showBoard(email) {
       document.getElementById('gate').style.display = 'none';
       document.getElementById('board').style.display = 'flex';
       document.getElementById('verified-msg').textContent = 'Verified: ' + email;
+      logVisit(email);
     }
 
     function signOut() {

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>B2B CLM 300+ Member Access</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f3; color: #1a1a1a; min-height: 100vh; display: flex; flex-direction: column; }
+    header { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; }
+    main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 3rem 1.5rem; }
+    .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 16px; padding: 2.5rem 2rem; max-width: 440px; width: 100%; text-align: center; }
+    .card img { width: 220px; margin: 0 auto 20px; display: block; }
+    .card h1 { font-size: 20px; font-weight: 600; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+    .card p { font-size: 14px; color: #6b7280; line-height: 1.6; margin-bottom: 1rem; }
+    .card p strong { color: #1a1a1a; font-weight: 500; }
+    .subscribe-link { font-size: 12px; color: #9ca3af; margin-bottom: 1.5rem !important; }
+    .subscribe-link a { color: #6366f1; text-decoration: none; }
+    .subscribe-link a:hover { text-decoration: underline; }
+    input[type="email"] { width: 100%; padding: 10px 14px; font-size: 14px; border: 1px solid #d1d5db; border-radius: 8px; outline: none; margin-bottom: 0.625rem; color: #1a1a1a; transition: border-color 0.15s; }
+    input[type="email"]:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+    .btn-primary { width: 100%; padding: 10px 14px; font-size: 14px; font-weight: 500; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
+    .btn-primary:hover { background: #333; }
+    .status-msg { font-size: 13px; margin-top: 0.625rem; min-height: 18px; color: #6b7280; }
+    .status-msg.error { color: #dc2626; }
+    #verified-msg { font-size: 13px; color: #6b7280; margin-bottom: 1.25rem; }
+    .link-list { display: flex; flex-direction: column; gap: 10px; margin-top: 0.5rem; }
+    .link-tile { display: block; padding: 14px 18px; border: 1px solid #e5e5e5; border-radius: 10px; text-decoration: none; color: #1a1a1a; text-align: left; transition: border-color 0.15s, background 0.15s; }
+    .link-tile:hover { border-color: #6366f1; background: #fafafa; }
+    .link-tile .title { font-size: 15px; font-weight: 600; }
+    .link-tile .desc { font-size: 12.5px; color: #6b7280; margin-top: 2px; }
+    .btn-secondary { margin-top: 1.25rem; padding: 7px 14px; font-size: 13px; font-weight: 500; background: #fff; color: #1a1a1a; border: 1px solid #e5e5e5; border-radius: 8px; cursor: pointer; }
+    .btn-secondary:hover { background: #f5f5f3; }
+    footer { text-align: center; padding: 1.25rem; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e5e5; background: #fff; }
+    footer a { color: #6b7280; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <img src="clm-logo.jpg" alt="B2B CLM 300+" style="height:28px;border-radius:4px;vertical-align:middle;" />
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+
+      <div id="gate">
+        <img src="clm-logo.jpg" alt="B2B CLM 300+" />
+        <p style="font-weight:600;color:#6366f1;font-size:17px;">Exclusive to B2B CLM 300+ subscribers.</p>
+        <p>Verify your subscriber email to unlock both.</p>
+        <p><strong>Job Board:</strong> 80+ 2026 postings with their status, pay range and more.</p>
+        <p><strong>Job Matcher:</strong> Upload your resume and the best-fit current openings will be scored for you.</p>
+        <p class="subscribe-link"><strong>Not subscribed? <a href="https://b2bclm.beehiiv.com/" target="_blank">Join Here &rarr;</a></strong></p>
+        <input type="email" id="email-input" placeholder="your@email.com" />
+        <button class="btn-primary" onclick="verifyEmail()">Verify access</button>
+        <p class="status-msg" id="status-msg"></p>
+      </div>
+
+      <div id="menu" style="display:none;">
+        <img src="clm-logo.jpg" alt="B2B CLM 300+" />
+        <h1>You're in</h1>
+        <p id="verified-msg"></p>
+        <div class="link-list">
+          <a class="link-tile" href="clm-job-board.html">
+            <div class="title">Job Board &rarr;</div>
+            <div class="desc">Browse this week's open CLM roles</div>
+          </a>
+          <a class="link-tile" href="clm-matcher.html">
+            <div class="title">Job Matcher &rarr;</div>
+            <div class="desc">Paste your resume, get matched to the best-fit roles</div>
+          </a>
+        </div>
+        <button class="btn-secondary" onclick="signOut()">Sign out</button>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <a href="https://b2bclm.beehiiv.com/" target="_blank">B2B CLM 300+</a> &middot; Powered by Repetitos
+  </footer>
+
+  <script>
+    const ALLOWED_EMAILS = [
+      "apersiani@csod.com","carewarren4@gmail.com","cvanmeir@onesourcevirtual.com",
+      "darice.terlizzi@gmail.com","dawsonbrittnee@gmail.com","ddemasters@gmail.com",
+      "diana@advocacymaven.com","heather@heatherfoehconsulting.com","jean.k.collings@gmail.com",
+      "jenineclancy@gmail.com","jennifer.brister@sinch.com","kmcgill@mural.co",
+      "kate.zartarian@gmail.com","lmb.butler@gmail.com","mcfranks@gmail.com",
+      "misnys04@gmail.com","nina.wibowo@gmail.com","rachelshaney@gmail.com",
+      "reema.sarahthomas@gmail.com","ryangutierrez@gmail.com","sandra.grauschopf@gmail.com",
+      "scott@sendsight.ai","shelly.ryder@protonmail.com","steve@twelfth.agency",
+      "tinanguyen039@hotmail.com","victoria.taylor@energyexemplar.com","amy_wigginton@trimble.com",
+      "val@valgeisler.com","sukhsran@gmail.com","rachael.taft@granicus.com",
+      "michelle.ouellette@getbridge.com","elisabeth@slapfive.com","tim@slapfive.com",
+      "jeff@slapfive.com","anmay0706@gmail.com","jon.leighton@nexthink.com",
+      "shyam@buyerassist.io","sdonnelly@workramp.com","melissa.alonso@anaplan.com",
+      "emilygoh1904@gmail.com","kymorr@gmail.com","freedman.jennifer@gmail.com",
+      "kristen.meren@gmail.com","danielle0125@gmail.com","chrissy.mariotti@gmail.com",
+      "cindyaitken01@gmail.com","snider10uk@hotmail.com","thegroves@hotmail.com",
+      "jpaik@hq.bill.com","kellykey@outlook.com","adaraolumide@gmail.com",
+      "maurop@wings4u.com","kebridge@advocacybridge.co.uk","joni.erdmann@gmail.com",
+      "ariellerecine@gmail.com","danielle.dane@wexinc.com","gal.biran@base.ai",
+      "janelforsythe@outlook.com","lindsay.sugarman@appcues.com","stephanie.pizzuti@octave.com",
+      "doshichintan09@gmail.com","lisawilberding@gmail.com","kevin@mavlersinbox.com",
+      "rachaelromeo@gmail.com","joshua.shepherd@gmail.com","mkfaughnan@gmail.com",
+      "bettymcheung@gmail.com","harvestnutrition@gmail.com","sl.bell@yahoo.com",
+      "josephduydo@gmail.com","aditya.g@uplers.com","ihipsman@gmail.com",
+      "ihipsman@repetitos.com","elana@appcues.com","kbrenneman2@yahoo.com",
+      "mollyjones@deltek.com","clio.castruccio@boomi.com","shetal.shah@getmaintainx.com",
+      "charity.lorenzen@gmail.com","warsan.ahmed@gmail.com","zrecnytamie@gmail.com","lauren.turner@gmail.com",
+      "jon@lifecyclex.co","laurenm.oreilly@gmail.com","carly@championhq.com","lisapratt@deltek.com","alanmanosca@me.com",
+      "samantha.duggan11@gmail.com","tanyahk@gmail.com","pavanim101@gmail.com","daluchukwuiwegbu@yahoo.com","brian@brianheying.com",
+      "krystalmango9@gmail.com","williamgrantgrove@gmail.com","annapelyushkevych@gmail.com","joyce.donkor@gmail.com",
+      "aklatzkin@gitlab.com"
+    ];
+
+    const SESSION_KEY = 'clm_hub_email';
+    const LOGGER_URL = 'https://script.google.com/macros/s/AKfycbys05WSUu6sGSYT5mjSZPq88oXzXfWnUk20WfNmwCqktrbRrL_p_vlmBVMMuvLUVn6f/exec';
+
+    function logVisit(email) {
+      var img = new Image();
+      img.src = LOGGER_URL + '?email=' + encodeURIComponent(email);
+    }
+
+    function verifyEmail() {
+      const email = document.getElementById('email-input').value.trim().toLowerCase();
+      const msg = document.getElementById('status-msg');
+      msg.className = 'status-msg';
+      if (!email || !email.includes('@')) {
+        msg.className = 'status-msg error';
+        msg.textContent = 'Please enter a valid email address.';
+        return;
+      }
+      if (ALLOWED_EMAILS.includes(email)) {
+        sessionStorage.setItem(SESSION_KEY, email);
+        showMenu(email);
+      } else {
+        msg.className = 'status-msg error';
+        msg.textContent = 'This email is not on the subscriber list. Please use your B2B CLM 300+ email.';
+      }
+    }
+
+    function showMenu(email) {
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('menu').style.display = 'block';
+      document.getElementById('verified-msg').textContent = 'Verified: ' + email;
+      logVisit(email);
+    }
+
+    function signOut() {
+      sessionStorage.removeItem(SESSION_KEY);
+      document.getElementById('gate').style.display = 'block';
+      document.getElementById('menu').style.display = 'none';
+      document.getElementById('email-input').value = '';
+      document.getElementById('status-msg').textContent = '';
+    }
+
+    document.getElementById('email-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') verifyEmail();
+    });
+
+    const saved = sessionStorage.getItem(SESSION_KEY);
+    if (saved && ALLOWED_EMAILS.includes(saved)) {
+      showMenu(saved);
+    }
+  </script>
+
+</body>
+</html>

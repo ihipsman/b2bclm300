@@ -69,6 +69,21 @@
   }
   .nowrap{ white-space:nowrap; }
 
+  .section{
+    margin-top:44px;
+  }
+  .section:first-of-type{
+    margin-top:0;
+  }
+  .section-title{
+    font-family:var(--sans);
+    font-size:26px;
+    font-weight:700;
+    color:var(--teal);
+    margin:0 0 16px;
+    letter-spacing:-0.01em;
+  }
+
   .grid{
     display:grid;
     grid-template-columns:repeat(3, 1fr);
@@ -122,10 +137,19 @@
 
   .card-top{
     display:flex;
-    align-items:flex-start;
+    align-items:center;
     justify-content:space-between;
     gap:12px;
   }
+
+  .title-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+  }
+  .title-row .icon{ flex-shrink:0; }
+  .title-row .label{ overflow-wrap:break-word; }
 
   .tag{
     font-family:var(--mono);
@@ -230,86 +254,110 @@
   <div class="wrap">
     <h1>A Community Resource Center for <span class="nowrap">Customer Lifecycle Marketers.</span></h1>
 
-    <div class="grid">
+    <div class="section">
+      <h2 class="section-title">For Newsletter Subscribers</h2>
+      <p style="font-size:13px;margin:-8px 0 16px;"><a href="https://b2bclm.beehiiv.com/" target="_blank" style="color:var(--teal-dim);text-decoration:none;">Subscribe →</a></p>
+      <div class="grid">
 
-      <a class="card wide" href="https://ihipsman.github.io/b2bclm300/clm-job-board.html">
+      <a class="card wide" href="https://ihipsman.github.io/b2bclm300/clm-access.html">
         <div class="card-top">
-          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg></div>
+          <div class="title-row">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg></div>
+            <p class="label">Job Board + Job Matcher</p>
+          </div>
           <span class="tag live">Live</span>
         </div>
-        <span class="access-badge subscribers">🔒 Subscribers Only</span>
-        <p class="label">Job Board</p>
-        <p class="desc">Open CLM &amp; Customer Marketing roles, verified weekly.</p>
-        <div class="card-bottom">Browse roles <span class="arrow">→</span></div>
+        <p class="desc">Browse all CLM job openings in the Job Board, verified every Monday with their status, URL, pay scale and more. Then, paste your resume into the Job Matcher and score your top 10 best-fits.</p>
+        <div class="card-bottom">Enter <span class="arrow">→</span></div>
       </a>
 
-      <a class="card" href="https://ihipsman.github.io/b2bclm300/clm-matcher.html">
-        <div class="card-top">
-          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.5" fill="currentColor"/></svg></div>
-          <span class="tag live">Live</span>
-        </div>
-        <span class="access-badge subscribers">🔒 Subscribers Only</span>
-        <p class="label">Job Matcher</p>
-        <p class="desc">Paste your resume, get your top 10 fits, scored.</p>
-        <div class="card-bottom">Run a match <span class="arrow">→</span></div>
-      </a>
+    </div>
+    </div>
 
+    <div class="section">
+      <h2 class="section-title">For Members</h2>
+      <div class="grid">
 
       <a class="card" href="https://ihipsman.github.io/b2bclm300/">
         <div class="card-top">
-          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/><circle cx="17" cy="9" r="2.3"/><path d="M17.5 13.2c2.6.4 4.5 2.4 4.5 4.8"/></svg></div>
+          <div class="title-row">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/><circle cx="17" cy="9" r="2.3"/><path d="M17.5 13.2c2.6.4 4.5 2.4 4.5 4.8"/></svg></div>
+            <p class="label">Member Directory</p>
+          </div>
           <span class="tag live">Live</span>
         </div>
-        <span class="access-badge subscribers">🔒 Subscribers Only</span>
-        <p class="label">Member Directory</p>
         <p class="desc">Find and get found by other CLM practitioners.</p>
         <div class="card-bottom">Search members <span class="arrow">→</span></div>
       </a>
 
-      <a class="card wide" href="#" data-slot="connect">
+      <a class="card" href="#" data-slot="connect">
         <div class="card-top">
-          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="12" r="3.2"/><circle cx="17" cy="7" r="3.2"/><circle cx="17" cy="17" r="3.2"/><path d="M9.8 10.7 14.3 8.3M9.8 13.3l4.5 2.4"/></svg></div>
+          <div class="title-row">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="12" r="3.2"/><circle cx="17" cy="7" r="3.2"/><circle cx="17" cy="17" r="3.2"/><path d="M9.8 10.7 14.3 8.3M9.8 13.3l4.5 2.4"/></svg></div>
+            <p class="label">1-1 and Small Group Peer Matching</p>
+          </div>
           <span class="tag new">Coming soon</span>
         </div>
-        <span class="access-badge subscribers">🔒 Subscribers Only</span>
-        <p class="label">1-1 and Small Group Peer Matching</p>
         <p class="desc">Get connected with practitioners just like you with similar challenges.</p>
         <div class="card-bottom">Get matched <span class="arrow">→</span></div>
       </a>
 
+      <a class="card" href="#" data-slot="certification">
+        <div class="card-top">
+          <div class="title-row">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="9" r="6"/><path d="M8.5 14.5 7 21l5-2.5 5 2.5-1.5-6.5"/></svg></div>
+            <p class="label">Certification</p>
+          </div>
+          <span class="tag new" style="white-space:normal;text-align:center;line-height:1.3;">Under<br>Development</span>
+        </div>
+        <p class="desc">A credentialing program for CLM practitioners.</p>
+        <div class="card-bottom">Learn more <span class="arrow">→</span></div>
+      </a>
+
+    </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">For All</h2>
+      <div class="grid">
+
       <a class="card" href="https://ihipsman.raindrop.page/b2-b-clm-72595290">
         <div class="card-top">
-          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg></div>
+          <div class="title-row">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg></div>
+            <p class="label">Curated Content</p>
+          </div>
           <span class="tag live">Live</span>
         </div>
-        <span class="access-badge public">🌐 Public</span>
-        <p class="label">Curated Content</p>
         <p class="desc">Access B2B CLM 300+ newsletter archive, relevant research, podcasts, and more.</p>
         <div class="card-bottom">Explore content <span class="arrow">→</span></div>
       </a>
 
       <a class="card" href="https://luma.com/calendar/cal-6EvaRu72fAkDvpx">
         <div class="card-top">
-          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+          <div class="title-row">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+            <p class="label">Upcoming Events</p>
+          </div>
           <span class="tag live">Live</span>
         </div>
-        <span class="access-badge public">🌐 Public</span>
-        <p class="label">Upcoming Events</p>
         <p class="desc">In person and online events of value.</p>
         <div class="card-bottom">See what's next <span class="arrow">→</span></div>
       </a>
 
       <a class="card" href="https://cmaweekly.slack.com/archives/C08G8NMU4GG">
         <div class="card-top">
-          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 4a2 2 0 1 1 2 2H8V4Z"/><path d="M4 8a2 2 0 1 1 2-2v2H4Z"/><path d="M8 16a2 2 0 1 1-2 2v-2h2Z"/><path d="M16 20a2 2 0 1 1-2-2h2v2Z"/><path d="M20 16a2 2 0 1 1-2 2v-2h2Z"/><path d="M8 8h8v8H8z"/></svg></div>
+          <div class="title-row">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 4a2 2 0 1 1 2 2H8V4Z"/><path d="M4 8a2 2 0 1 1 2-2v2H4Z"/><path d="M8 16a2 2 0 1 1-2 2v-2h2Z"/><path d="M16 20a2 2 0 1 1-2-2h2v2Z"/><path d="M20 16a2 2 0 1 1-2 2v-2h2Z"/><path d="M8 8h8v8H8z"/></svg></div>
+            <p class="label">Slack Channel</p>
+          </div>
           <span class="tag live">Live</span>
         </div>
-        <span class="access-badge public">🌐 Public</span>
-        <p class="label">Slack Channel</p>
         <p class="desc">Lifecycle/expansion channel. Managed by CMA Weekly.</p>
         <div class="card-bottom">Join the conversation <span class="arrow">→</span></div>
       </a>
 
+    </div>
     </div>
 
     <footer>

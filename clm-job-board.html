@@ -65,7 +65,10 @@
           <h2>CLM Job Board</h2>
           <div class="verified" id="verified-msg"></div>
         </div>
-        <button class="btn-secondary" onclick="signOut()">Sign out</button>
+        <div style="display:flex;gap:8px;">
+          <a class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;" href="clm-matcher.html">Job Matcher &rarr;</a>
+          <button class="btn-secondary" onclick="signOut()">Sign out</button>
+        </div>
       </div>
       <iframe
         class="airtable-embed"
@@ -114,10 +117,10 @@
       "jon@lifecyclex.co","laurenm.oreilly@gmail.com","carly@championhq.com","lisapratt@deltek.com","alanmanosca@me.com",
       "samantha.duggan11@gmail.com","tanyahk@gmail.com","pavanim101@gmail.com","daluchukwuiwegbu@yahoo.com","brian@brianheying.com",
       "krystalmango9@gmail.com","williamgrantgrove@gmail.com","annapelyushkevych@gmail.com","joyce.donkor@gmail.com",
-      "aklatzkin@gitlab.com",klenda@gmail.com","sara.detrik@appcues.com","kerri.linsenbigler@championhq.com"
+      "aklatzkin@gitlab.com"
     ];
 
-    const SESSION_KEY = 'clm_board_email';
+    const SESSION_KEY = 'clm_hub_email';
 
     function verifyEmail() {
       const email = document.getElementById('email-input').value.trim().toLowerCase();

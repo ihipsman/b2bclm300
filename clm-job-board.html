@@ -86,47 +86,8 @@
   </footer>
 
   <script>
-    const ALLOWED_EMAILS = [
-      "apersiani@csod.com","carewarren4@gmail.com","cvanmeir@onesourcevirtual.com",
-      "darice.terlizzi@gmail.com","dawsonbrittnee@gmail.com","ddemasters@gmail.com",
-      "diana@advocacymaven.com","heather@heatherfoehconsulting.com","jean.k.collings@gmail.com",
-      "jenineclancy@gmail.com","jennifer.brister@sinch.com","kmcgill@mural.co",
-      "kate.zartarian@gmail.com","lmb.butler@gmail.com","mcfranks@gmail.com",
-      "misnys04@gmail.com","nina.wibowo@gmail.com","rachelshaney@gmail.com",
-      "reema.sarahthomas@gmail.com","ryangutierrez@gmail.com","sandra.grauschopf@gmail.com",
-      "scott@sendsight.ai","shelly.ryder@protonmail.com","steve@twelfth.agency",
-      "tinanguyen039@hotmail.com","victoria.taylor@energyexemplar.com","amy_wigginton@trimble.com",
-      "val@valgeisler.com","sukhsran@gmail.com","rachael.taft@granicus.com",
-      "michelle.ouellette@getbridge.com","elisabeth@slapfive.com","tim@slapfive.com",
-      "jeff@slapfive.com","anmay0706@gmail.com","jon.leighton@nexthink.com",
-      "shyam@buyerassist.io","sdonnelly@workramp.com","melissa.alonso@anaplan.com",
-      "emilygoh1904@gmail.com","kymorr@gmail.com","freedman.jennifer@gmail.com",
-      "kristen.meren@gmail.com","danielle0125@gmail.com","chrissy.mariotti@gmail.com",
-      "cindyaitken01@gmail.com","snider10uk@hotmail.com","thegroves@hotmail.com",
-      "jpaik@hq.bill.com","kellykey@outlook.com","adaraolumide@gmail.com",
-      "maurop@wings4u.com","kebridge@advocacybridge.co.uk","joni.erdmann@gmail.com",
-      "ariellerecine@gmail.com","danielle.dane@wexinc.com","gal.biran@base.ai",
-      "janelforsythe@outlook.com","lindsay.sugarman@appcues.com","stephanie.pizzuti@octave.com",
-      "doshichintan09@gmail.com","lisawilberding@gmail.com","kevin@mavlersinbox.com",
-      "rachaelromeo@gmail.com","joshua.shepherd@gmail.com","mkfaughnan@gmail.com",
-      "bettymcheung@gmail.com","harvestnutrition@gmail.com","sl.bell@yahoo.com",
-      "josephduydo@gmail.com","aditya.g@uplers.com","ihipsman@gmail.com",
-      "ihipsman@repetitos.com","elana@appcues.com","kbrenneman2@yahoo.com",
-      "mollyjones@deltek.com","clio.castruccio@boomi.com","shetal.shah@getmaintainx.com",
-      "charity.lorenzen@gmail.com","warsan.ahmed@gmail.com","zrecnytamie@gmail.com","lauren.turner@gmail.com",
-      "jon@lifecyclex.co","laurenm.oreilly@gmail.com","carly@championhq.com","lisapratt@deltek.com","alanmanosca@me.com",
-      "samantha.duggan11@gmail.com","tanyahk@gmail.com","pavanim101@gmail.com","daluchukwuiwegbu@yahoo.com","brian@brianheying.com",
-      "krystalmango9@gmail.com","williamgrantgrove@gmail.com","annapelyushkevych@gmail.com","joyce.donkor@gmail.com",
-      "aklatzkin@gitlab.com","luiz@prosperidadeconteudos.com","steven.ostler@gmail.com","mpw@zest.ai","cindy@cjamarketingsolutions.com",
-      "anh.linh0991@gmail.com","sherri.francis@purolator.com","kristen.hug@ukg.com","luiz@prosperidadeconteudos.com",
-      "benjamin.robert.vincent@gmail.com","evan.krieg@gmail.com","katiemcelroy24@gmail.com","davinwilfrid@gmail.com",
-      "brittany.zenner@gmail.com","kali.roling@gong.io","carolinazola.av@gmail.com","jenelle.stevens@powerschool.com,
-      "kparris@paloaltonetworks.com","hmontgomery@churnzero.com","chuck.quigley@vastdata.com","tova.y.miller@gmail.com",
-      "rpickford@coveo.com","shauna.vopulayya1@servicenow.com","keer.wang@icloud.com","joyce.verley8@gmail.com","kyleburgoyne7@gmail.com",
-      "buitendag.emma@gmail.com","jlustenader@gmail.com","hefied.rabie@gmail.com","margery_llacuna@yahoo.com","zoe.haveles@gmail.com",
-      "kwyantis@gmail.com","mike@flightdeck.co","roger2k6@yahoo.com","asbills@forrester.com","nhanlhtn@gmail.com","esotupo211@gmail.com",
-      "jneumeister@canto.com","aletta.davis@yahoo.com","roger2k6@yahoo.com"
-    ];
+    let ALLOWED_EMAILS = [];
+    let emailsLoaded = false;
 
     const SESSION_KEY = 'clm_hub_email';
 
@@ -137,6 +98,11 @@
       if (!email || !email.includes('@')) {
         msg.className = 'status-msg error';
         msg.textContent = 'Please enter a valid email address.';
+        return;
+      }
+      if (!emailsLoaded) {
+        msg.className = 'status-msg error';
+        msg.textContent = 'Still loading the subscriber list — please try again in a second.';
         return;
       }
       if (ALLOWED_EMAILS.includes(email)) {
@@ -174,10 +140,24 @@
       if (e.key === 'Enter') verifyEmail();
     });
 
-    const saved = sessionStorage.getItem(SESSION_KEY);
+    fetch('https://ihipsman.github.io/b2bclm300/allowed-emails.json')
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    ALLOWED_EMAILS = data;
+    emailsLoaded = true;
+    var saved = sessionStorage.getItem(SESSION_KEY);
     if (saved && ALLOWED_EMAILS.includes(saved)) {
       showBoard(saved);
     }
+  })
+  .catch(function(err) {
+    console.error('Failed to load subscriber list', err);
+    var msg = document.getElementById('status-msg');
+    if (msg) {
+      msg.className = 'status-msg error';
+      msg.textContent = 'Could not load subscriber list. Please refresh and try again.';
+    }
+  });
   </script>
 
 </body>

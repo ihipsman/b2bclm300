@@ -56,6 +56,10 @@
         <input type="email" id="email-input" placeholder="your@email.com" />
         <button class="btn-primary" onclick="verifyEmail()">Verify access</button>
         <p class="status-msg" id="status-msg"></p>
+        <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid #e5e5e5;">
+          <p style="font-size:11px;color:#9ca3af;letter-spacing:0.02em;text-transform:uppercase;margin-bottom:6px;">Sponsored by</p>
+          <img src="appcues-logo.svg" alt="Appcues" style="height:22px;" />
+        </div>
       </div>
     </div>
 
@@ -65,7 +69,8 @@
           <h2>CLM Job Board</h2>
           <div class="verified" id="verified-msg"></div>
         </div>
-        <div style="display:flex;gap:8px;">
+        <div style="display:flex;align-items:center;gap:16px;">
+          <img src="appcues-logo.svg" alt="Sponsored by Appcues" style="height:18px;" />
           <a style="text-decoration:none;display:inline-flex;align-items:center;padding:10px 18px;font-size:14px;font-weight:700;background:#00B4CC;color:#fff;border-radius:8px;" href="clm-matcher.html">Job Matcher &rarr;</a>
           <button class="btn-secondary" onclick="signOut()">Sign out</button>
         </div>

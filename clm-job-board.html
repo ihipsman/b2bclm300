@@ -31,6 +31,10 @@
     .board-header .verified { font-size: 13px; color: #6b7280; margin-top: 2px; }
     .btn-secondary { padding: 7px 14px; font-size: 13px; font-weight: 500; background: #fff; color: #1a1a1a; border: 1px solid #e5e5e5; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
     .btn-secondary:hover { background: #f5f5f3; }
+    .new-banner { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; text-align: left; background: #e6f8fa; border: 1px solid #b3e9f0; border-left: 4px solid #00B4CC; border-radius: 10px; padding: 12px 16px; margin-bottom: 1.25rem; font-size: 13px; line-height: 1.5; color: #1a1a1a; }
+    .new-badge { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; background: #00B4CC; color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; padding: 4px 10px 4px 8px; border-radius: 999px; }
+    .new-badge svg { width: 14px; height: 14px; }
+    .new-banner strong { font-weight: 600; }
     .airtable-embed { border: 1px solid #e5e5e5; border-radius: 10px; flex: 1; min-height: 640px; }
     footer { text-align: center; padding: 1.25rem; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e5e5; background: #fff; }
     footer a { color: #6b7280; text-decoration: none; }
@@ -54,6 +58,13 @@
         <p>Exclusive to <strong>B2B CLM 300+</strong> subscribers.</p>
         <p class="subscribe-link"><strong>Not subscribed? <a href="https://b2bclm.beehiiv.com/" target="_blank">Join Here &rarr;</a></strong></p>
         <p>Updated every Monday morning with new postings and the status of prior postings.</p>
+        <div class="new-banner">
+          <span class="new-badge">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z"/></svg>
+            NEW
+          </span>
+          <span>Postings are now scored based on: <strong>% of job that is customer lifecycle focused</strong>, <strong>title</strong>, <strong>seniority level</strong>, and <strong>salary</strong>.</span>
+        </div>
         <input type="email" id="email-input" placeholder="your@email.com" />
         <button class="btn-primary" onclick="verifyEmail()">Verify access</button>
         <p class="status-msg" id="status-msg"></p>

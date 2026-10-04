@@ -25,6 +25,32 @@
     .status-msg { font-size: 13px; margin-top: 0.625rem; min-height: 18px; color: #6b7280; }
     .status-msg.error { color: #dc2626; }
     .status-msg.success { color: #16a34a; }
+    .gate-wrap { display: flex; gap: 1.5rem; align-items: stretch; justify-content: center; flex-wrap: wrap; width: 100%; max-width: 900px; }
+    .gate-wrap .gate-card { flex: 0 1 420px; }
+    #report { display: none; flex: 1 1 340px; max-width: 420px; background: #fff; border: 1px solid #e5e5e5; border-radius: 16px; padding: 1.75rem 1.75rem 1.5rem; text-align: left; }
+    #report h2 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+    #report .report-sub { font-size: 12px; color: #9ca3af; margin-top: 2px; margin-bottom: 1.25rem; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #e5e5e5; border: 1px solid #e5e5e5; border-radius: 10px; overflow: hidden; margin-bottom: 1.5rem; }
+    .stat { background: #fff; padding: 12px 14px; }
+    .stat-value { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .bar-group { margin-bottom: 1.25rem; }
+    .bar-group:last-of-type { margin-bottom: 0; }
+    .stat-pct { font-size: 14px; font-weight: 500; color: #6b7280; margin-left: 6px; letter-spacing: 0; }
+    .stat-label { font-size: 12px; color: #6b7280; margin-top: 3px; }
+    .stat-delta { font-size: 11px; font-weight: 600; margin-top: 4px; color: #9ca3af; }
+    .stat-note { font-weight: 400; }
+    .stat-delta.up { color: #0e8a9a; }
+    .stat-delta.down { color: #b45309; }
+    #report h3 { font-size: 13px; font-weight: 600; margin-bottom: 0.625rem; }
+    .bar-row { display: grid; grid-template-columns: 136px 1fr 40px; align-items: center; gap: 10px; font-size: 12px; margin-bottom: 7px; }
+    .bar-row .bar-name { color: #374151; }
+    .bar-track { height: 8px; background: #f0f0ee; border-radius: 4px; overflow: hidden; }
+    .bar-fill { height: 100%; background: #00B4CC; border-radius: 4px; width: 0; transition: width 0.6s ease-out; }
+    .bar-row .bar-count { text-align: right; color: #6b7280; font-variant-numeric: tabular-nums; }
+    .report-foot { font-size: 12px; color: #6b7280; margin-top: 1.25rem; padding-top: 0.875rem; border-top: 1px solid #f0f0ee; line-height: 1.5; }
+    .report-foot strong { color: #1a1a1a; font-weight: 600; }
+    @media (max-width: 480px) { .stat-value { font-size: 20px; } .stat { padding: 10px 12px; } }
+    @media (prefers-reduced-motion: reduce) { .bar-fill { transition: none; } }
     #board { display: none; flex: 1; flex-direction: column; padding: 1.5rem 2rem; max-width: 1200px; width: 100%; margin: 0 auto; }
     .board-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e5e5; }
     .board-header h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
@@ -51,6 +77,7 @@
 
   <main>
     <div id="gate">
+      <div class="gate-wrap">
       <div class="gate-card">
         <p style="font-size:11px;color:#9ca3af;letter-spacing:0.02em;text-transform:uppercase;margin-bottom:8px;">Sponsored by</p>
         <img src="appcues-logo.svg" alt="Appcues" style="width:180px;margin:0 auto 20px;" />
@@ -68,6 +95,22 @@
         <input type="email" id="email-input" placeholder="your@email.com" />
         <button class="btn-primary" onclick="verifyEmail()">Verify access</button>
         <p class="status-msg" id="status-msg"></p>
+      </div>
+
+      <section id="report" aria-label="CLM hiring snapshot">
+        <h2>CLM hiring in 2026</h2>
+        <p class="report-sub" id="report-updated"></p>
+        <div class="stat-grid">
+          <div class="stat"><div class="stat-value" id="r-total">–</div><div class="stat-label">Postings in 2026</div><div class="stat-delta" id="r-total-d"></div></div>
+          <div class="stat"><div class="stat-value" id="r-remote">–</div><div class="stat-label">Remote</div><div class="stat-delta" id="r-remote-d"></div></div>
+          <div class="stat"><div class="stat-value" id="r-salary" style="white-space:nowrap;">–</div><div class="stat-label">Typical salary range</div></div>
+          <div class="stat"><div class="stat-value"><span id="r-score">–</span><span class="stat-pct">/100</span></div><div class="stat-label">Average job score</div></div>
+        </div>
+        <h3>Status</h3>
+        <div id="r-status" class="bar-group"></div>
+        <h3>Seniority, all 2026 postings</h3>
+        <div id="r-seniority" class="bar-group"></div>
+      </section>
       </div>
     </div>
 
@@ -171,6 +214,66 @@
       msg.textContent = 'Could not load subscriber list. Please refresh and try again.';
     }
   });
+
+    // ---- CLM hiring snapshot (public aggregates from the Worker) ----
+    const REPORT_URL = 'https://winter-shadow-d507.ihipsman.workers.dev/hiring-report';
+
+    function setDelta(id, d, suffix) {
+      var el = document.getElementById(id);
+      if (d === null || d === undefined) { el.textContent = ''; return; }
+      if (d === 0) { el.className = 'stat-delta'; el.textContent = 'No change vs last week'; return; }
+      el.className = 'stat-delta ' + (d > 0 ? 'up' : 'down');
+      el.textContent = (d > 0 ? '+' : '') + d + (suffix || '') + ' vs last week';
+    }
+
+    function renderBars(id, rows) {
+      var wrap = document.getElementById(id);
+      wrap.innerHTML = '';
+      rows.forEach(function(x) {
+        var row = document.createElement('div');
+        row.className = 'bar-row';
+        row.innerHTML = '<span class="bar-name"></span><div class="bar-track"><div class="bar-fill"></div></div><span class="bar-count"></span>';
+        row.querySelector('.bar-name').textContent = x.label;
+        row.querySelector('.bar-count').textContent = x.pct + '%';
+        wrap.appendChild(row);
+        var fill = row.querySelector('.bar-fill');
+        requestAnimationFrame(function(){ requestAnimationFrame(function(){ fill.style.width = Math.min(x.pct, 100) + '%'; }); });
+      });
+    }
+
+    function renderReport(r) {
+      document.getElementById('r-total').textContent = r.totalPostings;
+      document.getElementById('r-remote').textContent = r.remote.pct + '%';
+      if (r.avgScore) document.getElementById('r-score').textContent = r.avgScore;
+      if (r.salaryRange) {
+        var k = function(v) { return '$' + Math.round(v / 1000) + 'K'; };
+        document.getElementById('r-salary').textContent = '$' + Math.round(r.salaryRange.low / 1000) + '–' + k(r.salaryRange.high);
+      }
+      var d = r.deltas || {};
+      var td = document.getElementById('r-total-d');
+      td.className = 'stat-delta' + (r.addedLastWeek ? ' up' : '');
+      td.textContent = '+' + (r.addedLastWeek || 0) + ' added last week';
+      setDelta('r-remote-d', d.remotePct, ' pts');
+
+      renderBars('r-status', [
+        { label: 'Still accepting', pct: r.accepting.pct },
+        { label: 'Filled', pct: r.filled.pct },
+        { label: 'No longer accepting', pct: r.closed.pct }
+      ]);
+      renderBars('r-seniority', r.seniority.map(function(x) { return { label: x.level, pct: x.pct }; }));
+
+      var upd = r.boardUpdatedAt || r.generatedAt;
+      if (upd) {
+        document.getElementById('report-updated').textContent = 'Last updated ' +
+          new Date(upd).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      }
+      document.getElementById('report').style.display = 'block';
+    }
+
+    fetch(REPORT_URL)
+      .then(function(res) { if (!res.ok) throw new Error(res.status); return res.json(); })
+      .then(renderReport)
+      .catch(function(err) { console.warn('Hiring snapshot unavailable', err); }); // panel stays hidden
   </script>
 
 </body>

@@ -101,7 +101,7 @@
         <h2>CLM hiring in 2026</h2>
         <p class="report-sub" id="report-updated"></p>
         <div class="stat-grid">
-          <div class="stat"><div class="stat-value" id="r-total">–</div><div class="stat-label">Postings in 2026</div><div class="stat-delta" id="r-total-d"></div></div>
+          <div class="stat"><div class="stat-value" id="r-total">–</div><div class="stat-label">Postings in 2026</div><div class="stat-delta" id="r-total-d"></div><div class="stat-delta up" id="r-accepting-d"></div></div>
           <div class="stat"><div class="stat-value" id="r-remote">–</div><div class="stat-label">Remote</div><div class="stat-delta" id="r-remote-d"></div></div>
           <div class="stat"><div class="stat-value" id="r-salary" style="white-space:nowrap;">–</div><div class="stat-label">Typical salary range</div></div>
           <div class="stat"><div class="stat-value"><span id="r-score">–</span><span class="stat-pct">/100</span></div><div class="stat-label">Average job score</div></div>
@@ -255,12 +255,23 @@
       td.textContent = '+' + (r.addedLastWeek || 0) + ' added last week';
       setDelta('r-remote-d', d.remotePct, ' pts');
 
+      var accCount = (r.accepting && r.accepting.count != null) ? r.accepting.count
+        : Math.round((r.accepting.pct || 0) * (r.totalPostings || 0) / 100);
+      document.getElementById('r-accepting-d').textContent = accCount + ' still accepting applications';
+
+      var pct = function(o) { return (o && o.pct) || 0; };
       renderBars('r-status', [
-        { label: 'Still accepting', pct: r.accepting.pct },
-        { label: 'Filled', pct: r.filled.pct },
-        { label: 'No longer accepting', pct: r.closed.pct }
+        { label: 'Still accepting', pct: pct(r.accepting) },
+        { label: 'Filled – new hire', pct: pct(r.filledNew) },
+        { label: 'Filled – promotion', pct: pct(r.filledPromo) },
+        { label: 'No longer accepting', pct: pct(r.closed) }
       ]);
-      renderBars('r-seniority', r.seniority.map(function(x) { return { label: x.level, pct: x.pct }; }));
+      var ORDER = ['Specialist/Coordinator', 'Manager', 'Senior Manager', 'Director', 'Senior Director'];
+      var sen = r.seniority.slice().sort(function(a, b) {
+        var ia = ORDER.indexOf(a.level), ib = ORDER.indexOf(b.level);
+        return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+      });
+      renderBars('r-seniority', sen.map(function(x) { return { label: x.level, pct: x.pct }; }));
 
       var upd = r.boardUpdatedAt || r.generatedAt;
       if (upd) {

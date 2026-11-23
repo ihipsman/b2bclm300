@@ -176,6 +176,9 @@ details.tips summary{font-weight:600;cursor:pointer}
               <li>Unannounced products, internal revenue numbers, who's being replaced</li></ul></div>
           </div>
         </details>
+        <label for="jRole">Start from an open role on the CLM Job Board (optional)
+          <select id="jRole"><option value="">Paste my own job description</option></select>
+        </label>
         <div class="row">
           <label for="jTitle">Job title<input type="text" id="jTitle" required placeholder="Director, Customer Lifecycle Marketing"></label>
           <label for="jCompany">Company (optional)<input type="text" id="jCompany" placeholder="Acme SaaS"></label>
@@ -233,6 +236,12 @@ details.tips summary{font-weight:600;cursor:pointer}
         </div>
         <div class="actions"><button type="submit" id="revGo">Save my profile</button><button type="button" class="danger" id="delMe" hidden>Delete my profile</button><span class="note" id="revProg"></span></div>
       </form>
+      <div class="card" id="rolesCard" hidden>
+        <div class="mhead"><h2>Open roles that fit you</h2><span class="note" id="rolesAt"></span></div>
+        <p class="note" style="margin:0">Claude compares your saved profile with every open role on the CLM Job Board. Only you see these results.</p>
+        <div class="actions"><button type="button" id="rolesGo">Find my matching roles</button><span class="note" id="rolesProg"></span></div>
+        <div class="list" id="rolesList"></div>
+      </div>
     </section>
 
     <!-- INTROS -->
@@ -306,9 +315,20 @@ function liveApi(){
     resume: id => call("/resume", { id }),
     intros: () => call("/intros"),
     requestIntro: body => call("/intro", body),
-    respond: (id, accept) => call("/intro/respond", { id, accept })
+    respond: (id, accept) => call("/intro/respond", { id, accept }),
+    roles: () => call("/roles"),
+    myRoles: () => call("/my-roles", {})
   };
 }
+
+const DEMO_ROLES = [
+  { id:"r1", company:"Example SaaS Co", title:"Director, Customer Lifecycle Marketing", location:"Remote (US)", remote:true, pay:"$170K-$210K", posted:"November", url:"", job_score:92,
+    jd:"Own the post-sale customer lifecycle strategy: onboarding, adoption, expansion and renewal. Accountable for net revenue retention and expansion pipeline. Lead a team of 4 lifecycle marketers. Partner with Customer Success and Product. HubSpot, Gainsight, segmentation, experimentation." },
+  { id:"r2", company:"Demo Analytics", title:"Senior Manager, Lifecycle Marketing", location:"New York, NY", remote:false, pay:"", posted:"October", url:"", job_score:85,
+    jd:"Build and run onboarding and activation journeys for a product-led motion. In-app messaging, email lifecycle, A/B testing, Braze, Amplitude. Improve trial-to-paid conversion and reduce early churn." },
+  { id:"r3", company:"Sample Security", title:"Customer Marketing Manager", location:"Remote", remote:true, pay:"$120K-$140K", posted:"November", url:"", job_score:74,
+    jd:"Run customer advocacy, references, case studies and customer webinars. Grow review volume on G2. Support expansion campaigns to existing customers with product marketing." }
+];
 
 /* Demo: everything stays in this browser. Sample profiles, keyword-based scores, nothing saved. */
 function demoApi(){
@@ -351,7 +371,12 @@ function demoApi(){
     async resume(){ return { resume: cand?.resume_text || "" }; },
     async intros(){ return { incoming, outgoing }; },
     async requestIntro(){ throw new Error("Sample profiles can't receive intros."); },
-    async respond(id, accept){ const i = incoming.find(x => x.id === id); i.status = accept ? "accepted" : "declined"; return { ok:true }; }
+    async respond(id, accept){ const i = incoming.find(x => x.id === id); i.status = accept ? "accepted" : "declined"; return { ok:true }; },
+    async roles(){ return { roles: DEMO_ROLES }; },
+    async myRoles(){ await wait(1500); const pw = words(JSON.stringify(cand.profile));
+      cand.role_matches = DEMO_ROLES.map(r => { const hit = [...words(r.jd + " " + r.title)].filter(x => pw.has(x)).length;
+        return { id:r.id, score: Math.min(95, 45 + hit*5), fit:"Demo score from keyword overlap. The live version has Claude compare your profile with the full job description.", met:[], gaps:[], role:r }; }).sort((a,b) => b.score - a.score);
+      cand.role_matched_at = new Date().toISOString(); return { candidate: cand }; }
   };
 }
 const api = DEMO ? demoApi() : liveApi();
@@ -391,7 +416,7 @@ async function enter(){
   $("#gate").hidden = true; $("#app").hidden = false; route();
   $("#who").innerHTML = `${esc(email)} · <button class="link" id="out" type="button">Sign out</button>`;
   $("#out").onclick = () => { api.signOut(); email = null; mine = null; draft = null; showGate(); };
-  await loadAll();
+  await Promise.all([loadAll(), loadRoles()]);
 }
 async function loadAll(){
   try{
@@ -435,6 +460,7 @@ const asText = (v, kind) => kind === "list" ? (v || []).join(", ") : kind === "l
 const fromText = (t, kind) => kind === "list" ? t.split(",").map(s => s.trim()).filter(Boolean) : kind === "lines" ? t.split("\n").map(s => s.trim()).filter(Boolean) : t.trim();
 
 function renderCandidate(){
+  renderRoleMatches();
   $("#upTitle").textContent = mine ? "Replace your resume" : "Join the talent bank";
   $("#revForm").hidden = !draft; $("#delMe").hidden = !mine;
   if (!draft) return;
@@ -580,6 +606,45 @@ $("#dlgForm").addEventListener("submit", async e => {
   catch(err){ status("Couldn't send the request: " + esc(err.message)); }
   $("#dlg").hidden = true;
 });
+
+/* ---------- open roles from the Job Board ---------- */
+let roles = [];
+async function loadRoles(){
+  try{ roles = (await api.roles()).roles || []; }catch{ roles = []; }
+  $("#jRole").innerHTML = '<option value="">Paste my own job description</option>' +
+    roles.map(r => `<option value="${esc(r.id)}">${esc(r.company)} · ${esc(r.title)}${r.job_score != null ? " (Job Score " + r.job_score + ")" : ""}</option>`).join("");
+}
+$("#jRole").addEventListener("change", () => {
+  const r = roles.find(x => x.id === $("#jRole").value);
+  if (!r){ $("#jTitle").value = ""; $("#jCompany").value = ""; $("#jJd").value = ""; return; }
+  $("#jTitle").value = r.title; $("#jCompany").value = r.company; $("#jJd").value = r.jd;
+});
+
+function renderRoleMatches(){
+  $("#rolesCard").hidden = !mine;
+  if (!mine) return;
+  const ms = mine.role_matches || [];
+  $("#rolesGo").textContent = ms.length ? "Refresh my matches" : "Find my matching roles";
+  $("#rolesAt").textContent = mine.role_matched_at ? "Checked " + new Date(mine.role_matched_at).toLocaleDateString() : "";
+  $("#rolesList").innerHTML = ms.map(m => { const r = m.role || {}, cls = m.score >= 75 ? "hi" : m.score >= 55 ? "mid" : "";
+    const meta = [r.location, r.remote ? "Remote" : "", r.pay, r.posted ? "Posted " + r.posted : ""].filter(Boolean).map(esc).join(" · ");
+    return `<div class="match">
+      <div class="score ${cls}" aria-label="Fit score ${m.score}">${m.score}</div>
+      <div style="display:grid;gap:6px">
+        <h3>${esc(r.title)} · ${esc(r.company)}</h3>
+        ${meta ? `<p class="note" style="margin:0">${meta}</p>` : ""}
+        <p style="margin:0">${esc(m.fit)}</p>
+        <div class="chips">${(m.met || []).map(s => `<span class="chip">✓ ${esc(s)}</span>`).join("")}${(m.gaps || []).map(s => `<span class="chip gap">Gap: ${esc(s)}</span>`).join("")}</div>
+        ${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener">View the job posting</a>` : ""}
+      </div></div>`; }).join("");
+}
+$("#rolesGo").onclick = async () => {
+  const b = $("#rolesGo"), prog = $("#rolesProg"); b.disabled = true;
+  prog.innerHTML = '<span class="spin"></span> Comparing your profile with every open role. This takes about a minute…';
+  try{ mine = (await api.myRoles()).candidate; prog.textContent = ""; renderRoleMatches(); }
+  catch(err){ prog.innerHTML = '<span class="err">' + esc(err.message) + '</span>'; }
+  b.disabled = false;
+};
 
 /* ---------- intros ---------- */
 function renderIntros(){

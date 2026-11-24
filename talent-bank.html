@@ -13,6 +13,7 @@
 /* ===== CONFIG: fill in after setup (see SETUP.md). Leave WORKER_URL blank, or add ?demo to the URL, for demo mode. ===== */
 const CONFIG = {
   WORKER_URL: "https://clm-talent-bank.ihipsman.workers.dev",
+  JOB_BOARD_SUBMIT: false,   // set to true once AIRTABLE_TOKEN is on the Worker (shows "Also submit to the public CLM Job Board")
   CONTACT: "Irwin Hipsman on LinkedIn",
   CONTACT_URL: "https://www.linkedin.com/in/ihipsman/"
 };
@@ -185,6 +186,13 @@ details.tips summary{font-weight:600;cursor:pointer}
         </div>
         <label for="jJd">Job description<textarea id="jJd" required placeholder="Paste your custom job description"></textarea></label>
         <label for="jMust">Must-haves, one per line (optional)<textarea id="jMust" style="min-height:70px" placeholder="Owns expansion revenue target&#10;Lifecycle email program at scale&#10;B2B SaaS experience"></textarea></label>
+        <div id="boardBox" class="list" style="gap:10px" hidden>
+          <label class="check" for="jBoard"><input type="checkbox" id="jBoard"> Also submit this role to the public CLM Job Board. It's reviewed before it's posted; leave this unchecked to keep the role private.</label>
+          <div class="row" id="boardFields" hidden>
+            <label for="jUrl">Link to the posting (LinkedIn preferred)<input type="url" id="jUrl" placeholder="https://"></label>
+            <label for="jName">Your name<input type="text" id="jName" autocomplete="name"></label>
+          </div>
+        </div>
         <div class="actions"><button type="submit" id="jGo">Score the bank</button><span class="note" id="jProg"></span></div>
         <p class="note" style="margin:0">Decision support only. Candidates are scored only on what they chose to share. You decide who to contact.</p>
       </form>
@@ -260,12 +268,6 @@ details.tips summary{font-weight:600;cursor:pointer}
     <div class="actions"><button type="submit">Send request</button><button type="button" class="ghost" id="dlgCancel">Cancel</button></div>
   </form>
 </div>
-<div class="dlg" id="resDlg" hidden>
-  <div class="card" style="max-width:720px">
-    <div class="mhead"><h2>Full resume</h2><button type="button" class="ghost" id="resClose">Close</button></div>
-    <pre id="resText" style="white-space:pre-wrap;font:14px/1.5 var(--body);margin:0;max-height:65vh;overflow:auto"></pre>
-  </div>
-</div>
 
 <script>
 const $ = s => document.querySelector(s);
@@ -312,7 +314,12 @@ function liveApi(){
     remove: () => call("/profile/delete", {}),
     search: body => call("/search", body),
     jobs: () => call("/jobs"),
-    resume: id => call("/resume", { id }),
+    async uploadFile(f){
+      const buf = new Uint8Array(await f.arrayBuffer()); let bin = "";
+      for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+      return call("/resume-file", { name: f.name, type: f.type || "application/octet-stream", data: btoa(bin) });
+    },
+    introResume: id => call("/intro/resume", { id }),
     intros: () => call("/intros"),
     requestIntro: body => call("/intro", body),
     respond: (id, accept) => call("/intro/respond", { id, accept }),
@@ -345,7 +352,7 @@ function demoApi(){
   const wait = ms => new Promise(r => setTimeout(r, ms));
   const words = t => new Set(String(t).toLowerCase().match(/[a-z]{4,}/g) || []);
   const cardOf = c => { const p = c.profile, v = c.visible, o = { id:"me", status:c.status, headline:p.headline, function:p.function, seniority:p.seniority, years:p.years };
-    FIELDS.forEach(([k]) => { if (v[k] && p[k] && (!Array.isArray(p[k]) || p[k].length)) o[k] = p[k]; }); o.has_resume = !!v.resume; return o; };
+    FIELDS.forEach(([k]) => { if (v[k] && p[k] && (!Array.isArray(p[k]) || p[k].length)) o[k] = p[k]; }); return o; };
   return {
     hasSession: () => !!email,
     async login(e){ await wait(300); if (/not-approved/.test(e)) throw Object.assign(new Error("not_approved"), { code:"not_approved" }); email = e.toLowerCase(); return email; },
@@ -353,12 +360,12 @@ function demoApi(){
     async stats(){ const n = pool.length + (cand ? 1 : 0); return { total:n, active: pool.filter(c=>c.status==="active").length + (cand?.status==="active"?1:0), open:n }; },
     async me(){ return { email, candidate: cand }; },
     async extract(resume){ await wait(900); const first = resume.trim().split(/\n/)[0].slice(0,40);
-      return { visible: Object.fromEntries(FIELDS.map(f => [f[0], f[3]]).concat([["resume",false]])),
+      return { visible: Object.fromEntries(FIELDS.map(f => [f[0], f[3]])),
         profile: { name: first || "Your Name", linkedin:"", current_title:"Senior Manager, Lifecycle Marketing", current_company:"Your Current Company", past_employers:["Previous Co","Earlier Co"], location:"Boston, MA",
           headline:"Lifecycle marketer, 8 yrs B2B SaaS, onboarding and expansion", function:"Lifecycle marketing", seniority:"Senior Manager", years:8,
           skills:["Lifecycle strategy","Onboarding","Expansion","Segmentation"], tools:["HubSpot","Gainsight"], industries:["Martech SaaS"],
           highlights:["Demo: Claude writes 3 quantified highlights from your resume","Employer names are kept out of highlights","Edit anything before you save"] } }; },
-    async save(b){ await wait(300); cand = { id:"me", ...b, resume_text: b.visible.resume ? b.resume_text : null, updated_at:new Date().toISOString() };
+    async save(b){ await wait(300); cand = { id:"me", ...b, resume_filename: cand?.resume_filename, updated_at:new Date().toISOString() };
       if (!incoming.length) incoming.push({ id:"d1", job_title:"Head of Lifecycle Marketing", company:"Demo Co", message:"Your expansion work stood out. Open to a 20-minute call next week?", status:"pending", created_at:new Date().toISOString() });
       return { candidate: cand }; },
     async remove(){ cand = null; incoming = []; return { ok:true }; },
@@ -366,9 +373,10 @@ function demoApi(){
       const matches = pool.map(c => { const hit = [...words(JSON.stringify(c))].filter(x => jw.has(x)).length;
         return { id:c.id, score: Math.min(97, 40 + hit*4), fit:"Demo score from keyword overlap. The live version has Claude read each profile against your job description.",
           met:(c.skills||[]).filter(s => [...words(s)].some(x => jw.has(x))).slice(0,4), gaps:[], card:c }; }).sort((a,b) => b.score - a.score);
-      const job = { id:"j"+Date.now(), title:b.title, company:b.company, pool_size:pool.length, matches, created_at:new Date().toISOString() }; jobs.unshift(job); return { job }; },
+      const job = { id:"j"+Date.now(), title:b.title, company:b.company, pool_size:pool.length, matches, created_at:new Date().toISOString() }; jobs.unshift(job); return { job, board: b.submit_board ? "submitted" : null }; },
     async jobs(){ return { jobs }; },
-    async resume(){ return { resume: cand?.resume_text || "" }; },
+    async uploadFile(f){ await wait(200); cand.resume_filename = f.name; return { ok:true }; },
+    async introResume(){ throw new Error("Resume files open in the live version only."); },
     async intros(){ return { incoming, outgoing }; },
     async requestIntro(){ throw new Error("Sample profiles can't receive intros."); },
     async respond(id, accept){ const i = incoming.find(x => x.id === id); i.status = accept ? "accepted" : "declined"; return { ok:true }; },
@@ -382,7 +390,7 @@ function demoApi(){
 const api = DEMO ? demoApi() : liveApi();
 
 /* ====================== APP ====================== */
-let email = null, mine = null, draft = null, resumeText = "", jobs = [], intros = { incoming:[], outgoing:[] }, shownJob = null;
+let email = null, mine = null, draft = null, resumeText = "", resumeFile = null, jobs = [], intros = { incoming:[], outgoing:[] }, shownJob = null;
 
 function status(msg){ const b = $("#status"); b.hidden = !msg; b.innerHTML = msg || ""; }
 const views = ["hiring","candidate","intros"];
@@ -434,7 +442,7 @@ async function fileText(f){
   if (ext === "docx") return (await mammoth.extractRawText({ arrayBuffer: await f.arrayBuffer() })).value;
   if (ext === "pdf"){
     const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await f.arrayBuffer()) }).promise; let out = "";
-    for (let i = 1; i <= pdf.numPages; i++){ const c = await (await pdf.getPage(i)).getTextContent(); out += c.items.map(x => x.str).join(" ") + "\n"; }
+    for (let i = 1; i <= pdf.numPages; i++){ const c = await (await pdf.getPage(i)).getTextContent(); out += c.items.map(x => x.str + (x.hasEOL ? "\n" : " ")).join("") + "\n"; }
     return out;
   }
   throw new Error("Use a PDF, DOCX or TXT file.");
@@ -446,6 +454,8 @@ $("#upForm").addEventListener("submit", async e => {
     let text = $("#cPaste").value.trim(); const f = $("#cFile").files[0];
     if (f) text = await fileText(f);
     if (!text || text.length < 200) throw new Error("Add a resume file or paste at least a few paragraphs.");
+    if (f && f.size > 5 * 1024 * 1024) throw new Error("That file is over 5 MB. Save a smaller PDF or Word file and try again.");
+    resumeFile = f || new File([text], "resume.txt", { type: "text/plain" });
     prog.innerHTML = '<span class="spin"></span> Pulling out your details…';
     const r = await api.extract(text.slice(0, 14000));
     resumeText = text; draft = { profile: r.profile, visible: { ...r.visible, ...(mine?.visible || {}) } };
@@ -483,8 +493,9 @@ function renderCandidate(){
       <label for="f_${k}">${label}${kind === "lines" ? `<textarea id="f_${k}" data-f="${k}" data-kind="${kind}" style="min-height:90px">${esc(asText(p[k], kind))}</textarea>` : `<input type="text" id="f_${k}" data-f="${k}" data-kind="${kind}" value="${esc(asText(p[k], kind))}">`}</label>
       ${toggle(k, v[k])}</div>`).join("")}
     <div class="frow">
-      <div><b style="font-size:14px">Full resume</b><div class="note">${resumeText || mine?.resume_text ? "Let hiring managers read your full resume, as uploaded." : "Upload a resume above to share it in full."}</div></div>
-      ${resumeText || mine?.resume_text ? toggle("resume", v.resume) : '<span class="vis fixed">Private</span>'}
+      <div><b style="font-size:14px">Your resume file${resumeFile ? ": " + esc(resumeFile.name) : mine?.resume_filename ? ": " + esc(mine.resume_filename) : ""}</b>
+        <div class="note">Hiring managers never see it in search results. It's shared, as you uploaded it, only with a manager whose intro you accept.</div></div>
+      <span class="vis fixed">Shared on intro only</span>
     </div>`;
   $("#cStatus").value = mine?.status || "active"; $("#cOpen").checked = mine ? !!mine.open_to_intro : true; $("#cConsent").checked = !!mine;
   $("#fields").querySelectorAll("[data-f]").forEach(el => el.addEventListener("input", () => {
@@ -499,7 +510,7 @@ function renderCandidate(){
 function cardFromDraft(){
   const p = draft.profile, v = draft.visible, o = { status: $("#cStatus").value, headline:p.headline, function:p.function, seniority:p.seniority, years:p.years };
   FIELDS.forEach(([k]) => { if (v[k] && p[k] && (!Array.isArray(p[k]) || p[k].length)) o[k] = p[k]; });
-  o.has_resume = !!(v.resume && (resumeText || mine?.resume_text)); return o;
+  return o;
 }
 function renderPreview(){ $("#preview").innerHTML = cardHtml(cardFromDraft()); }
 $("#cStatus").addEventListener("change", () => draft && renderPreview());
@@ -516,7 +527,6 @@ function cardHtml(c, extra = ""){
     ${c.skills || c.tools || c.industries ? `<div class="chips">${[...(c.skills||[]), ...(c.tools||[]), ...(c.industries||[])].map(s => `<span class="chip">${esc(s)}</span>`).join("")}</div>` : ""}
     ${c.highlights ? `<ul style="margin:2px 0 0;padding-left:18px">${c.highlights.map(h => `<li>${esc(h)}</li>`).join("")}</ul>` : ""}
     ${c.linkedin ? `<a href="${esc(c.linkedin)}" target="_blank" rel="noopener">LinkedIn profile</a>` : ""}
-    ${c.has_resume ? (c.id ? `<div><button type="button" class="ghost" data-resume="${esc(c.id)}">Read full resume</button></div>` : `<p class="note" style="margin:0">Full resume shared</p>`) : ""}
   </div>`;
 }
 
@@ -526,8 +536,9 @@ $("#revForm").addEventListener("submit", async e => {
   try{
     if (!draft.profile.headline) throw new Error("Add a headline.");
     await api.save({ status: $("#cStatus").value, open_to_intro: $("#cOpen").checked, consent: $("#cConsent").checked,
-                     profile: draft.profile, visible: draft.visible, resume_text: draft.visible.resume ? resumeText : null });
-    prog.textContent = "Saved. Hiring managers now see the preview above."; resumeText = ""; $("#cFile").value = ""; $("#cPaste").value = "";
+                     profile: draft.profile, visible: draft.visible });
+    if (resumeFile){ prog.innerHTML = '<span class="spin"></span> Saving your resume file…'; await api.uploadFile(resumeFile); }
+    prog.textContent = "Saved. Hiring managers now see the preview above."; resumeText = ""; resumeFile = null; $("#cFile").value = ""; $("#cPaste").value = "";
     const m = await api.me(); mine = m.candidate; renderCandidate(); refreshStats();
     intros = await api.intros(); renderIntros();
   }catch(err){ prog.innerHTML = '<span class="err">' + esc(err.message) + '</span>'; }
@@ -535,7 +546,7 @@ $("#revForm").addEventListener("submit", async e => {
 });
 $("#delMe").onclick = async () => {
   $("#delMe").disabled = true;
-  try{ await api.remove(); mine = null; draft = null; resumeText = ""; renderCandidate(); renderIntros(); refreshStats(); $("#upProg").textContent = "Your profile was deleted."; }
+  try{ await api.remove(); mine = null; draft = null; resumeText = ""; resumeFile = null; renderCandidate(); renderIntros(); refreshStats(); $("#upProg").textContent = "Your profile was deleted."; }
   catch(err){ $("#revProg").innerHTML = '<span class="err">' + esc(err.message) + '</span>'; }
   $("#delMe").disabled = false;
 };
@@ -543,11 +554,19 @@ $("#delMe").onclick = async () => {
 /* ---------- hiring ---------- */
 $("#jobForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const prog = $("#jProg"), btn = $("#jGo"); btn.disabled = true;
+  const prog = $("#jProg"), btn = $("#jGo");
+  const toBoard = $("#jBoard").checked && !$("#boardBox").hidden;
+  if (toBoard && !/^https?:\/\/\S+\.\S+/.test($("#jUrl").value.trim())){ prog.innerHTML = '<span class="err">Add the link to the posting to submit it to the Job Board.</span>'; $("#jUrl").focus(); return; }
+  if (toBoard && !$("#jCompany").value.trim()){ prog.innerHTML = '<span class="err">Add the company name to submit it to the Job Board.</span>'; $("#jCompany").focus(); return; }
+  btn.disabled = true;
   prog.innerHTML = '<span class="spin"></span> Scoring the bank. This takes about 20 seconds per 15 profiles…';
   try{
-    const { job } = await api.search({ title: $("#jTitle").value.trim(), company: $("#jCompany").value.trim(), jd: $("#jJd").value.trim(), must: $("#jMust").value.trim() });
-    prog.textContent = `Scored ${job.pool_size} profiles.`;
+    const { job, board } = await api.search({ title: $("#jTitle").value.trim(), company: $("#jCompany").value.trim(), jd: $("#jJd").value.trim(), must: $("#jMust").value.trim(),
+      submit_board: toBoard, posting_url: $("#jUrl").value.trim(), submitter_name: $("#jName").value.trim() });
+    const boardMsg = board === "submitted" ? " Your role was sent to the CLM Job Board for review."
+      : board ? " The role couldn't be sent to the Job Board this time; your search is saved." : "";
+    prog.textContent = `Scored ${job.pool_size} profiles.` + boardMsg;
+    if (board === "submitted"){ $("#jBoard").checked = false; $("#boardFields").hidden = true; }
     jobs = (await api.jobs()).jobs; renderJobs();
     showResults(jobs.find(j => j.id === job.id) || job);
   }catch(err){ prog.innerHTML = '<span class="err">' + esc(err.message) + '</span>'; }
@@ -565,7 +584,7 @@ function showResults(job){
       <div style="display:grid;gap:8px"><span class="note">#${i + 1}</span>${cardHtml(m.card, extra)}<div class="actions" data-intro="${esc(m.id)}"></div></div></div>`;
   }).join("");
   $("#results").innerHTML = `<div class="card"><div class="mhead"><h2>Top matches: ${esc(job.title)}</h2><span class="note">${job.pool_size} profiles scored · ${new Date(job.created_at).toLocaleDateString()}</span></div><div class="list">${rows || '<p class="note">No matches.</p>'}</div></div>`;
-  renderIntroButtons(); wireResumeButtons($("#results"));
+  renderIntroButtons();
   $("#results").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion:reduce)").matches ? "auto" : "smooth" });
 }
 function renderIntroButtons(){
@@ -578,15 +597,6 @@ function renderIntroButtons(){
     else { el.innerHTML = `<button type="button" class="ghost">Request intro</button>`; el.querySelector("button").onclick = () => openDlg(cid); }
   });
 }
-function wireResumeButtons(root){
-  root.querySelectorAll("[data-resume]").forEach(b => b.onclick = async () => {
-    b.disabled = true;
-    try{ const r = await api.resume(b.dataset.resume); $("#resText").textContent = r.resume; $("#resDlg").hidden = false; }
-    catch(err){ status(esc(err.message)); }
-    b.disabled = false;
-  });
-}
-$("#resClose").onclick = () => $("#resDlg").hidden = true;
 function renderJobs(){
   $("#myJobsCard").hidden = !jobs.length;
   $("#myJobs").innerHTML = jobs.map(j => `<div class="item"><div class="mhead"><div><b>${esc(j.title)}</b>${j.company ? ` <span class="note">· ${esc(j.company)}</span>` : ""}<div class="note">${new Date(j.created_at).toLocaleDateString()} · top score ${j.matches?.[0]?.score ?? "–"}</div></div><button type="button" class="ghost" data-job="${esc(j.id)}">View matches</button></div></div>`).join("");
@@ -616,9 +626,12 @@ async function loadRoles(){
 }
 $("#jRole").addEventListener("change", () => {
   const r = roles.find(x => x.id === $("#jRole").value);
+  $("#boardBox").hidden = !!r || !CONFIG.JOB_BOARD_SUBMIT; if (r){ $("#jBoard").checked = false; $("#boardFields").hidden = true; }
   if (!r){ $("#jTitle").value = ""; $("#jCompany").value = ""; $("#jJd").value = ""; return; }
   $("#jTitle").value = r.title; $("#jCompany").value = r.company; $("#jJd").value = r.jd;
 });
+
+$("#jBoard").addEventListener("change", () => { $("#boardFields").hidden = !$("#jBoard").checked; });
 
 function renderRoleMatches(){
   $("#rolesCard").hidden = !mine;
@@ -654,13 +667,20 @@ function renderIntros(){
   $("#introsIn").innerHTML = inc.length ? inc.map(i => `<div class="item">
       <div class="mhead"><b>${esc(i.job_title)}${i.company ? " · " + esc(i.company) : ""}</b><span class="pill ${i.status}">${i.status}</span></div>
       <p style="margin:0">${esc(i.message)}</p>
-      ${i.status === "pending" ? `<div class="actions"><button type="button" data-acc="${esc(i.id)}">Accept and share my name, email and LinkedIn</button><button type="button" class="ghost" data-dec="${esc(i.id)}">Decline</button></div>` : ""}
+      ${i.status === "pending" ? `<div class="actions"><button type="button" data-acc="${esc(i.id)}">Accept and share my name, email, LinkedIn and resume</button><button type="button" class="ghost" data-dec="${esc(i.id)}">Decline</button></div>` : ""}
     </div>`).join("") : '<p class="note">None yet. Requests appear here when a hiring manager wants to talk.</p>';
   $("#introsOut").innerHTML = out.length ? out.map(i => `<div class="item">
       <div class="mhead"><b>${esc(i.card?.headline || "Candidate")}</b><span class="pill ${i.status}">${i.status}</span></div>
       <span class="note">For ${esc(i.job_title)} · fit ${i.score ?? "–"}</span>
-      ${i.status === "accepted" && i.contact ? `<div><b>${esc(i.contact.name)}</b> · ${esc(i.contact.email)}${i.contact.linkedin ? ` · <a href="${esc(i.contact.linkedin)}" target="_blank" rel="noopener">LinkedIn</a>` : ""}</div>` : ""}
+      ${i.status === "accepted" && i.contact ? `<div><b>${esc(i.contact.name)}</b> · ${esc(i.contact.email)}${i.contact.linkedin ? ` · <a href="${esc(i.contact.linkedin)}" target="_blank" rel="noopener">LinkedIn</a>` : ""}</div>
+      ${i.has_file ? `<div><button type="button" class="ghost" data-file="${esc(i.id)}">Open resume</button></div>` : ""}` : ""}
     </div>`).join("") : '<p class="note">None yet.</p>';
+  document.querySelectorAll("[data-file]").forEach(b => b.onclick = async () => {
+    const w = window.open("", "_blank"); b.disabled = true;   // opened on the click so pop-up blockers allow it
+    try{ const r = await api.introResume(b.dataset.file); if (w) w.location = r.url; else location.href = r.url; }
+    catch(err){ if (w) w.close(); status("Couldn't open the resume: " + esc(err.message)); }
+    b.disabled = false;
+  });
   document.querySelectorAll("[data-acc],[data-dec]").forEach(b => b.onclick = async () => {
     b.disabled = true;
     try{ await api.respond(b.dataset.acc || b.dataset.dec, !!b.dataset.acc); intros = await api.intros(); renderIntros(); }
